@@ -223,10 +223,10 @@ abstract class DerivationMacros[RD[_], RE[_], DD[_], DE[_]] {
   private[this] def coproductDecoderParts(members: Members): (List[c.Tree], (c.Tree, c.Tree)) = members.fold(
     resolveInstance(List((typeOf[Decoder[_]], false), (DD.tpe, true)))
   )((cnilResult, cnilResultAccumulating)) {
-    case (Member(label, nameTpe, tpe, current, accTail), instanceName, (acc, accAccumulating)) =>
+    case (Member(_, nameTpe, tpe, current, accTail), instanceName, (acc, accAccumulating)) =>
       (
         q"""
-        ${decodeSubtype(label, instanceName)} match {
+        ${decodeSubtype(tpe.toString, instanceName)} match {
           case _root_.scala.Some(result) => result.right.map(v =>
            $ReprDecoderUtils.injectLeftValue[$nameTpe, $tpe, $accTail](v)
           )
@@ -234,7 +234,7 @@ abstract class DerivationMacros[RD[_], RE[_], DD[_], DE[_]] {
         }
       """,
         q"""
-        ${decodeSubtypeAccumulating(label, instanceName)} match {
+        ${decodeSubtypeAccumulating(tpe.toString, instanceName)} match {
           case _root_.scala.Some(result) => result.map(v =>
             $ReprDecoderUtils.injectLeftValue[$nameTpe, $tpe, $accTail](v)
           )
@@ -305,7 +305,8 @@ abstract class DerivationMacros[RD[_], RE[_], DD[_], DE[_]] {
     )(
       cq"""_root_.shapeless.Inr(_) => _root_.scala.sys.error("Cannot encode CNil")"""
     ) {
-      case (Member(label, _, tpe, _, _), instanceName, acc) =>
+      case (Member(_, _, tpe, _, _), instanceName, acc) =>
+        val label = tpe.toString
         val inrName = TermName(s"circeGenericInrBindingFor$label").encodedName.toTermName
         val inlName = TermName(s"circeGenericInlBindingFor$label").encodedName.toTermName
 
