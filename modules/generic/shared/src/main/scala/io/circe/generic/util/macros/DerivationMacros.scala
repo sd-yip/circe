@@ -75,12 +75,12 @@ abstract class DerivationMacros[RD[_], RE[_], DD[_], DE[_]] {
      */
     def fold[Z](resolver: Type => Tree)(init: Z)(f: (Member, TermName, Z) => Z): (List[Tree], Z) = {
       val (instanceList, result) = underlying.foldRight((List.empty[(Type, (TermName, Tree))], init)) {
-        case (member @ Member(label, _, valueType, _, _), (instanceList, acc)) =>
+        case (member @ Member(_, _, valueType, _, _), (instanceList, acc)) =>
           val (newInstanceList, instanceName) =
             instanceList.find(_._1 =:= valueType) match {
               case Some(result) => (instanceList, result._2._1)
               case None =>
-                val newName = TermName(s"circeGenericInstanceFor$label").encodedName.toTermName
+                val newName = TermName(s"circeGenericInstanceFor$valueType").encodedName.toTermName
                 val newInstance = resolver(valueType)
 
                 ((valueType, (newName, newInstance)) :: instanceList, newName)
